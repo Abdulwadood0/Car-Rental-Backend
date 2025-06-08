@@ -1,0 +1,279 @@
+const { Reservation, validateCreateReservation, validateUpdateReservation } = require('../models/Reservation');
+const asyncHandler = require('express-async-handler');
+const { Car } = require('../models/Car');
+const { User } = require('../models/User');
+
+function checkDate(startDateRes, endDateRes) {
+    const startDate = new Date(startDateRes);
+    const endDate = new Date(endDateRes);
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // midnight
+
+    const maxStartDate = new Date(today);
+    maxStartDate.setDate(today.getDate() + 5);
+
+    if (startDate < today || startDate > maxStartDate) {
+        return "Start date must be between today and the next 5 days";
+    }
+
+    const maxEndDate = new Date(startDate);
+    maxEndDate.setDate(startDate.getDate() + 30);
+
+    if (endDate <= startDate) {
+        return "End date must be after the start date";
+    }
+
+    if (endDate > maxEndDate) {
+        return "End date must be within 30 days of the start date";
+    }
+
+    return null; // no issues
+}
+
+
+/**------------------------------------------
+ * @desc     Create Reservation
+ * @route    /api/reservation
+ * @method   POST
+ * @access   private 
+ ------------------------------------------*/
+module.exports.CreateReservation = asyncHandler(async (req, res) => {
+    const { error } = validateCreateReservation(req.body);
+
+    if (error) {
+        return res.status(400).json({ message: error.details[0].message });
+    }
+
+    const dateError = checkDate(req.body.startDate, req.body.endDate);
+    if (dateError) {
+        return res.status(400).json({ message: dateError });
+    }
+
+    const car = await Car.findById(req.body.carId);
+
+    if (!car) {
+        return res.status(404).json({ message: "Car not found" });
+    }
+
+    const reservations = await Reservation.find({
+        carId: req.body.carId,
+        status: { $in: ["ongoing", "upcoming"] }
+    })
+
+    if (reservations.length >= 2) {
+        const upcomingReservation = reservations.find(reservation => reservation.status === "Upcoming")
+        let avalibleDate = new Date(upcomingReservation.endDate)
+        avalibleDate.setDate(avalibleDate.getDate() + 1);
+        const formattedAvalibleDate = avalibleDate.toLocaleDateString("en-GB");
+        return res.status(400).json({ message: `Car is not avalible until ${formattedAvalibleDate}` });
+    }
+
+    const formatToUTCDate = (dateStr) => {
+        const date = new Date(dateStr);
+        return new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+    };
+
+    const formattedStartDate = formatToUTCDate(req.body.startDate);
+    const formattedEndDate = formatToUTCDate(req.body.endDate);
+
+    const totalPrice = car.pricePerDay * (formattedEndDate - formattedStartDate) / (1000 * 60 * 60 * 24);
+
+    const reservation = new Reservation({
+        userId: req.user._id,
+        carId: req.body.carId,
+        startDate: formattedStartDate,
+        endDate: formattedEndDate,
+        totalPrice: totalPrice,
+    });
+
+    await reservation.save();
+
+    return res.status(200).json(reservation);
+})
+
+
+/**------------------------------------------
+ * @desc     update a Reservation (startDate, endDate)
+ * @route    /api/reservation/:id
+ * @method   PATCH
+ * @access   private  
+ ------------------------------------------*/
+module.exports.PatchReservation = asyncHandler(async (req, res) => {
+    const reservation = await Reservation.findById(req.params.id);
+    let message = ""
+
+    if (!reservation) {
+        return res.status(404).json({ message: "Reservation not found" });
+    }
+    const { error } = validateUpdateReservation(req.body);
+    if (error) {
+
+        return res.status(400).json({ message: error.details[0].message });
+    }
+
+    if (reservation.status === "cancelled" || reservation.status === "completed") {
+        return res.status(400).json({ message: "Cannot update a cancelled or completed reservation" });
+    }
+
+    // Check if the logged-in user owns the reservation or is an admin
+    if (reservation.userId.toString() !== req.user._id.toString() && !req.user.isAdmin) {
+        return res.status(403).json({ message: "Forbidden" });
+    }
+
+
+
+
+    // update startDate and endDate if provided
+    if (req.body.startDate || req.body.endDate) {
+        const dateError = checkDate(req.body.startDate, req.body.endDate);
+        if (dateError) {
+            return res.status(400).json({ message: dateError });
+        }
+
+        // Prevent updates on cancelled or ongoing or upcoming reservations
+        if (reservation.status === "ongoing" || reservation.status === "upcoming") {
+            return res.status(400).json({ message: "Cannot update this reservation" });
+        }
+        const formatToUTCDate = (dateStr) => {
+            const date = new Date(dateStr);
+            return new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+        };
+        const formattedStartDate = formatToUTCDate(req.body.startDate);
+        const formattedEndDate = formatToUTCDate(req.body.endDate);
+
+        reservation.startDate = formattedStartDate;
+        reservation.endDate = formattedEndDate;
+        reservation.totalPrice = req.body.totalPrice;
+        message = "Reservation updated successfully"
+
+    }
+
+
+    if (req.body.status) {
+        const from = reservation.status;
+        const to = req.body.status;
+
+        const allowed = {
+            pending: ["ongoing", "cancelled"],
+            ongoing: ["completed", "cancelled"],
+            upcoming: ["ongoing", "cancelled"],
+        };
+
+        if (!allowed[from]?.includes(to)) {
+            return res.status(400).json({ message: `Invalid transition: ${from} → ${to}` });
+        }
+
+        if (to === "ongoing") {
+            reservation.actualStart = new Date();
+            message = "Reservation started successfully";
+        }
+        if (to === "completed") {
+            reservation.actualEnd = new Date();
+            message = "Reservation completed successfully";
+        }
+        if (to === "cancelled") {
+            message = "Reservation cancelled successfully";
+        }
+
+        reservation.status = to;
+    }
+
+    await reservation.save();
+    return res.status(200).json({
+        message: message,
+    });
+
+})
+
+
+
+/**------------------------------------------
+ * @desc     Get Reservation
+ * @route    /api/reaservation/:id
+ * @method   GET
+ * @access   private  
+ ------------------------------------------*/
+module.exports.getReservation = asyncHandler(async (req, res) => {
+
+
+    const reservation = await Reservation.findById(req.params.id);
+
+    if (!reservation) {
+        return res.status(404).json({ message: "Reservation not found" });
+    }
+
+    if ((reservation.userId.toString() === req.user._id) || req.user.isAdmin) {
+        return res.status(200).json(reservation);
+
+    } else
+        return res.status(401).json({ message: "Unauthorized" });
+
+})
+
+
+/**------------------------------------------
+ * @desc     Get All Reservation
+ * @route    /api/reservation
+ * @method   GET
+ * @access   private  
+ ------------------------------------------*/
+module.exports.getAllReservation = asyncHandler(async (req, res) => {
+
+    const { page, limit, status, search } = req.query;
+
+    // Initialize the query object
+    let query = {};
+
+    if (!req.user.isAdmin) {
+        query.userId = req.user._id
+    }
+
+    // If status is provided, filter by status
+    if (status) {
+        query.status = status;
+    }
+
+    // Set pagination values
+    const skip = (page - 1) * limit;
+    const count = Math.ceil(await Reservation.countDocuments(query) / limit);
+
+    // If the user is an admin and a search term is provided
+    if (req.user.isAdmin && search) {
+        // Find the user based on email or phone
+        const user = await User.find({
+            $or: [
+                { email: { $regex: search, $options: 'i' } },
+                { phone: { $regex: search, $options: 'i' } }
+            ]
+        }).select('_id');
+
+        if (user.length === 1) {
+            // If the user is found, filter reservations by the user's ID
+            query.userId = user[0]._id;
+        } else {
+            return res.status(404).json({ message: "User not found" });
+        }
+    }
+
+    // Fetch the reservations based on the query
+    const reservations = await Reservation
+        .find(query)
+        .populate("paymentId") // Populate payment information
+        .populate("carId") // Populate car information
+        .sort({ createdAt: -1 }) // Sort by creation date (descending)
+        .skip(skip) // Apply pagination skip
+        .limit(limit); // Apply pagination limit
+
+
+    if (reservations.length === 0) {
+        return res.status(404).json({ message: "No reservations found" });
+    }
+
+    // Return the reservations and the count
+    return res.status(200).json({ reservations, count });
+});
+
+
+
+
