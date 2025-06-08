@@ -14,7 +14,7 @@ router.delete("/:id", verifiyObjectId, verifyToken, verifyAdmin, deleteCar)
 // /api/cars/:id
 router.put("/:id", verifiyObjectId, verifyToken, verifyAdmin, handleUploadMultipleImges, updateCar)
 
-// /api/cars/:id
+// /api/cars
 router.get("/", optionalVerifyToken, getAllCars)
 
 // /api/cars/by-year
