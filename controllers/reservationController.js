@@ -2,15 +2,21 @@ const { Reservation, validateCreateReservation, validateUpdateReservation } = re
 const asyncHandler = require('express-async-handler');
 const { Car } = require('../models/Car');
 const { User } = require('../models/User');
+const { formatInTimeZone } = require("date-fns-tz");
+const e = require('express');
 
 function checkDate(startDateRes, endDateRes) {
-    const startDate = new Date(startDateRes);
-    startDate.setHours(0, 0, 0, 0); // normalize startDate time to midnight
+    const timeZone = "Asia/Riyadh";
 
-    const endDate = new Date(endDateRes);
-    endDate.setHours(0, 0, 0, 0); // normalize endDate time to midnight
+    // Parse incoming ISO strings into Date objects in KSA timezone
+    const startDateTimeZone = formatInTimeZone(new Date(startDateRes), timeZone, "yyyy-MM-dd");
+    const endDateTimeZone = formatInTimeZone(new Date(endDateRes), timeZone, "yyyy-MM-dd");
 
-    const today = new Date();
+    const startDate = new Date(startDateTimeZone)
+    const endDate = new Date(endDateTimeZone);
+
+    const todayTimeZone = formatInTimeZone(new Date(), timeZone, "yyyy-MM-dd");
+    const today = new Date(todayTimeZone);
     today.setHours(0, 0, 0, 0); // midnight
 
 
