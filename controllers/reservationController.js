@@ -108,6 +108,9 @@ module.exports.PatchReservation = asyncHandler(async (req, res) => {
     if (!reservation) {
         return res.status(404).json({ message: "Reservation not found" });
     }
+    const startDate = toTimeZone(req.body.startDate);
+    const endDate = toTimeZone(req.body.endDate);
+
     const { error } = validateUpdateReservation(req.body);
     if (error) {
 
@@ -128,7 +131,7 @@ module.exports.PatchReservation = asyncHandler(async (req, res) => {
 
     // update startDate and endDate if provided
     if (req.body.startDate || req.body.endDate) {
-        const dateError = checkDate(req.body.startDate, req.body.endDate);
+        const dateError = checkDate(startDate, endDate);
         if (dateError) {
             return res.status(400).json({ message: dateError });
         }
@@ -137,17 +140,9 @@ module.exports.PatchReservation = asyncHandler(async (req, res) => {
         if (reservation.status === "ongoing" || reservation.status === "upcoming") {
             return res.status(400).json({ message: "Cannot update this reservation" });
         }
-        const formatToUTCDate = (dateStr) => {
-            const date = new Date(dateStr);
-            return new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-        };
-        const formattedStartDate = formatToUTCDate(req.body.startDate);
-        const formattedEndDate = formatToUTCDate(req.body.endDate);
-        console.log(formattedStartDate, formattedEndDate);
 
-
-        reservation.startDate = formattedStartDate;
-        reservation.endDate = formattedEndDate;
+        reservation.startDate = startDate;
+        reservation.endDate = endDate;
         reservation.totalPrice = req.body.totalPrice;
         message = "Reservation updated successfully"
 
