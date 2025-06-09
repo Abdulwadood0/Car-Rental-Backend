@@ -42,7 +42,7 @@ app.use(rateLimit({
 // Cors Policy
 app.use(cors({
     // origin: 'http://localhost:3000'
-    origin: "https://car-rental-frontend-lwuc.vercel.app/cars"
+    origin: "https://car-rental-frontend-lwuc.vercel.app"
 }))
 
 //Routes
