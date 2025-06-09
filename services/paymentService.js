@@ -10,7 +10,7 @@ async function processPayment({ amount, decription, source }) {
                 currency: 'SAR',
                 description: decription,
                 source: source,
-                callback_url: 'http://localhost:3000/payment/callback' //redirect URL
+                callback_url: 'https://car-rental-frontend-lwuc.vercel.app/payment/callback' //redirect URL
             },
             {
                 auth: {
