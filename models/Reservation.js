@@ -60,7 +60,7 @@ function validateCreateReservation(obj) {
 
 function validateUpdateReservation(obj) {
     const schema = Joi.object({
-        startDate: Joi.date().optional(),
+        startDate: Joi.date().min(new Date()).optional(),
         endDate: Joi.date()
             .greater(Joi.ref("startDate"))
             .when("startDate", {

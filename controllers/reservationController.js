@@ -4,36 +4,35 @@ const { Car } = require('../models/Car');
 const { User } = require('../models/User');
 const { toZonedTime } = require("date-fns-tz");
 
-function checkDate(startDateRes, endDateRes) {
+
+function toTimeZone(date) {
     const timeZone = "Asia/Riyadh";
+    const zoned = toZonedTime(new Date(date), timeZone);
+    zoned.setHours(0, 0, 0, 0); // normalize to midnight KSA
+    return zoned;
+}
 
-    // Convert incoming UTC ISO dates to KSA-local dates
-    const startZoned = toZonedTime(new Date(startDateRes), timeZone);
-    const endZoned = toZonedTime(new Date(endDateRes), timeZone);
 
-    // Normalize time to midnight for comparison
-    startZoned.setHours(0, 0, 0, 0);
-    endZoned.setHours(0, 0, 0, 0);
+function checkDate(startDate, endDate) {
+    const timeZone = "Asia/Riyadh";
+    const today = toZonedTime(new Date(), timeZone)
+    today.setHours(0, 0, 0, 0); // midnight UTC (or system time, fine for comparison since all are normalized)
 
-    const nowUTC = new Date();
-    const todayZoned = toZonedTime(nowUTC, timeZone);
-    todayZoned.setHours(0, 0, 0, 0);
+    const maxStartDate = new Date(today);
+    maxStartDate.setDate(today.getDate() + 5);
 
-    const maxStartDate = new Date(todayZoned);
-    maxStartDate.setDate(todayZoned.getDate() + 5);
-
-    if (startZoned < todayZoned || startZoned > maxStartDate) {
+    if (startDate < today || startDate > maxStartDate) {
         return "Start date must be between today and the next 5 days";
     }
 
-    const maxEndDate = new Date(startZoned);
-    maxEndDate.setDate(startZoned.getDate() + 30);
+    const maxEndDate = new Date(startDate);
+    maxEndDate.setDate(startDate.getDate() + 30);
 
-    if (endZoned <= startZoned) {
+    if (endDate <= startDate) {
         return "End date must be after the start date";
     }
 
-    if (endZoned > maxEndDate) {
+    if (endDate > maxEndDate) {
         return "End date must be within 30 days of the start date";
     }
 
@@ -48,19 +47,20 @@ function checkDate(startDateRes, endDateRes) {
  * @access   private 
  ------------------------------------------*/
 module.exports.CreateReservation = asyncHandler(async (req, res) => {
-    const { error } = validateCreateReservation(req.body);
+    const startDate = toTimeZone(req.body.startDate);
+    const endDate = toTimeZone(req.body.endDate);
 
+    const { error } = validateCreateReservation({ ...req.body, startDate, endDate });
     if (error) {
         return res.status(400).json({ message: error.details[0].message });
     }
 
-    const dateError = checkDate(req.body.startDate, req.body.endDate);
+    const dateError = checkDate(startDate, endDate);
     if (dateError) {
         return res.status(400).json({ message: dateError });
     }
 
     const car = await Car.findById(req.body.carId);
-
     if (!car) {
         return res.status(404).json({ message: "Car not found" });
     }
@@ -68,38 +68,31 @@ module.exports.CreateReservation = asyncHandler(async (req, res) => {
     const reservations = await Reservation.find({
         carId: req.body.carId,
         status: { $in: ["ongoing", "upcoming"] }
-    })
+    });
 
     if (reservations.length >= 2) {
-        const upcomingReservation = reservations.find(reservation => reservation.status === "Upcoming")
-        let avalibleDate = new Date(upcomingReservation.endDate)
-        avalibleDate.setDate(avalibleDate.getDate() + 1);
-        const formattedAvalibleDate = avalibleDate.toLocaleDateString("en-GB");
-        return res.status(400).json({ message: `Car is not avalible until ${formattedAvalibleDate}` });
+        const upcomingReservation = reservations.find(res => res.status === "Upcoming");
+        let availableDate = new Date(upcomingReservation.endDate);
+        availableDate.setDate(availableDate.getDate() + 1);
+        const formattedAvailableDate = availableDate.toLocaleDateString("en-GB");
+        return res.status(400).json({ message: `Car is not available until ${formattedAvailableDate}` });
     }
 
-    const formatToUTCDate = (dateStr) => {
-        const date = new Date(dateStr);
-        return new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-    };
-
-    const formattedStartDate = formatToUTCDate(req.body.startDate);
-    const formattedEndDate = formatToUTCDate(req.body.endDate);
-
-    const totalPrice = car.pricePerDay * (formattedEndDate - formattedStartDate) / (1000 * 60 * 60 * 24);
+    const totalPrice = car.pricePerDay * ((endDate - startDate) / (1000 * 60 * 60 * 24));
 
     const reservation = new Reservation({
         userId: req.user._id,
         carId: req.body.carId,
-        startDate: formattedStartDate,
-        endDate: formattedEndDate,
-        totalPrice: totalPrice,
+        startDate,
+        endDate,
+        totalPrice
     });
 
     await reservation.save();
 
     return res.status(200).json(reservation);
-})
+});
+
 
 
 /**------------------------------------------
