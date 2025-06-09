@@ -32,7 +32,7 @@ module.exports.sendResetPasswordLink = asyncHandler(async (req, res) => {
     }
 
     await verificationToken.save();
-    const link = `http://localhost:3000/reset-password/${user._id}/${verificationToken.token}`;
+    const link = `https://car-rental-frontend-lwuc.vercel.app/reset-password/${user._id}/${verificationToken.token}`;
 
 
     const html = `
