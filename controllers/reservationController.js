@@ -2,43 +2,42 @@ const { Reservation, validateCreateReservation, validateUpdateReservation } = re
 const asyncHandler = require('express-async-handler');
 const { Car } = require('../models/Car');
 const { User } = require('../models/User');
-const { formatInTimeZone } = require("date-fns-tz");
-const e = require('express');
+const { toZonedTime } = require("date-fns-tz");
 
 function checkDate(startDateRes, endDateRes) {
     const timeZone = "Asia/Riyadh";
 
-    // Parse incoming ISO strings into Date objects in KSA timezone
-    const startDateTimeZone = formatInTimeZone(new Date(startDateRes), timeZone, "yyyy-MM-dd");
-    const endDateTimeZone = formatInTimeZone(new Date(endDateRes), timeZone, "yyyy-MM-dd");
+    // Convert incoming UTC ISO dates to KSA-local dates
+    const startZoned = toZonedTime(new Date(startDateRes), timeZone);
+    const endZoned = toZonedTime(new Date(endDateRes), timeZone);
 
-    const startDate = new Date(startDateTimeZone)
-    const endDate = new Date(endDateTimeZone);
+    // Normalize time to midnight for comparison
+    startZoned.setHours(0, 0, 0, 0);
+    endZoned.setHours(0, 0, 0, 0);
 
-    const todayTimeZone = formatInTimeZone(new Date(), timeZone, "yyyy-MM-dd");
-    const today = new Date(todayTimeZone);
-    today.setHours(0, 0, 0, 0); // midnight
+    const nowUTC = new Date();
+    const todayZoned = toZonedTime(nowUTC, timeZone);
+    todayZoned.setHours(0, 0, 0, 0);
 
+    const maxStartDate = new Date(todayZoned);
+    maxStartDate.setDate(todayZoned.getDate() + 5);
 
-    const maxStartDate = new Date(today);
-    maxStartDate.setDate(today.getDate() + 5);
-
-    if (startDate < today || startDate > maxStartDate) {
+    if (startZoned < todayZoned || startZoned > maxStartDate) {
         return "Start date must be between today and the next 5 days";
     }
 
-    const maxEndDate = new Date(startDate);
-    maxEndDate.setDate(startDate.getDate() + 30);
+    const maxEndDate = new Date(startZoned);
+    maxEndDate.setDate(startZoned.getDate() + 30);
 
-    if (endDate <= startDate) {
+    if (endZoned <= startZoned) {
         return "End date must be after the start date";
     }
 
-    if (endDate > maxEndDate) {
+    if (endZoned > maxEndDate) {
         return "End date must be within 30 days of the start date";
     }
 
-    return null; // no issues
+    return null;
 }
 
 
@@ -141,7 +140,7 @@ module.exports.PatchReservation = asyncHandler(async (req, res) => {
             return res.status(400).json({ message: dateError });
         }
 
-        // Prevent updates on cancelled or ongoing or upcoming reservations
+        // Prevent updates on ongoing or upcoming reservations
         if (reservation.status === "ongoing" || reservation.status === "upcoming") {
             return res.status(400).json({ message: "Cannot update this reservation" });
         }
@@ -151,6 +150,8 @@ module.exports.PatchReservation = asyncHandler(async (req, res) => {
         };
         const formattedStartDate = formatToUTCDate(req.body.startDate);
         const formattedEndDate = formatToUTCDate(req.body.endDate);
+        console.log(formattedStartDate, formattedEndDate);
+
 
         reservation.startDate = formattedStartDate;
         reservation.endDate = formattedEndDate;
