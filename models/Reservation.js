@@ -59,8 +59,10 @@ function validateCreateReservation(obj) {
 }
 
 function validateUpdateReservation(obj) {
+    const now = new Date();
+    now.setHours(0, 0, 0, 0); // Set to start of today (midnight)
     const schema = Joi.object({
-        startDate: Joi.date().min(new Date()).optional(),
+        startDate: Joi.date().min(now).optional(),
         endDate: Joi.date()
             .greater(Joi.ref("startDate"))
             .when("startDate", {
