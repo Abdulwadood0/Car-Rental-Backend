@@ -111,7 +111,7 @@ module.exports.PatchReservation = asyncHandler(async (req, res) => {
     const startDate = toTimeZone(req.body.startDate);
     const endDate = toTimeZone(req.body.endDate);
 
-    const { error } = validateUpdateReservation(req.body);
+    const { error } = validateUpdateReservation({ ...req.body, startDate, endDate });
     if (error) {
 
         return res.status(400).json({ message: error.details[0].message });
