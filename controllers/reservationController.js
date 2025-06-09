@@ -5,10 +5,14 @@ const { User } = require('../models/User');
 
 function checkDate(startDateRes, endDateRes) {
     const startDate = new Date(startDateRes);
+    startDate.setHours(0, 0, 0, 0); // normalize startDate time to midnight
+
     const endDate = new Date(endDateRes);
+    endDate.setHours(0, 0, 0, 0); // normalize endDate time to midnight
 
     const today = new Date();
     today.setHours(0, 0, 0, 0); // midnight
+
 
     const maxStartDate = new Date(today);
     maxStartDate.setDate(today.getDate() + 5);
