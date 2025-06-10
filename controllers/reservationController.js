@@ -13,13 +13,20 @@ function toTimeZone(date) {
 }
 
 
-function checkDate(startDate, endDate) {
+function checkDate(startDate, endDate, newStartDate) {
     const timeZone = "Asia/Riyadh";
-    const today = toZonedTime(new Date(), timeZone)
-    today.setHours(0, 0, 0, 0); // midnight UTC (or system time, fine for comparison since all are normalized)
+    let today = toZonedTime(new Date(), timeZone)
+    today.setHours(0, 0, 0, 0);
 
-    const maxStartDate = new Date(today);
+    let maxStartDate = new Date(today);
     maxStartDate.setDate(today.getDate() + 5);
+
+    if (newStartDate) {
+        today = toZonedTime(new Date(newStartDate), timeZone)
+        today.setHours(0, 0, 0, 0);
+        maxStartDate = new Date(today);
+        maxStartDate.setDate(today.getDate() + 5);
+    }
 
     if (startDate < today || startDate > maxStartDate) {
         return "Start date must be between today and the next 5 days";
@@ -78,6 +85,12 @@ module.exports.CreateReservation = asyncHandler(async (req, res) => {
         return res.status(400).json({ message: `Car is not available until ${formattedAvailableDate}` });
     }
 
+    if (reservations.length === 1) {
+        if (reservations[0].endDate > startDate) {
+            return res.status(400).json({ message: `car is not available until ${reservations[0].endDate.toLocaleDateString("en-GB")}` });
+        }
+    }
+
     const totalPrice = car.pricePerDay * ((endDate - startDate) / (1000 * 60 * 60 * 24));
 
     const reservation = new Reservation({
@@ -126,12 +139,28 @@ module.exports.PatchReservation = asyncHandler(async (req, res) => {
         return res.status(403).json({ message: "Forbidden" });
     }
 
+    const reservations = await Reservation.find({
+        carId: reservation.carId,
+        status: { $in: ["ongoing", "upcoming"] }
+    });
+
+    if (reservations.length >= 2 || (reservations.length === 1 && reservations[0].endDate > startDate)) {
+        reservation.status = "cancelled"
+        await reservation.save();
+        return res.status(400).json({ message: `Car is not available` });
+    }
+
+    let newStartDate = null
+    if (reservations.length === 1) {
+        newStartDate = reservations[0].endDate
+    }
+
 
 
 
     // update startDate and endDate if provided
     if (req.body.startDate || req.body.endDate) {
-        const dateError = checkDate(startDate, endDate);
+        const dateError = checkDate(startDate, endDate, newStartDate);
         if (dateError) {
             return res.status(400).json({ message: dateError });
         }

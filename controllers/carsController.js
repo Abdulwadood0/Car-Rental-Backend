@@ -401,21 +401,6 @@ module.exports.getCarByYearAndModel = asyncHandler(async (req, res) => {
     const car = await Car.findById(reservations[0]._id).populate("carCompanyId");
     return res.status(200).json({ car, endDate: reservations[0].earliestEndDate });
 
-
-    // // Find the car with the least number of reservations
-    // const minCarId = Object.keys(reservationCountMap).reduce((a, b) => {
-    //     return reservationCountMap[a] < reservationCountMap[b] ? a : b;
-    // });
-
-
-    // // Get the index of the car with the least reservations
-    // const minIndex = carIds.indexOf(minCarId);
-    // const reservationMinIndex = reservationCarIds.indexOf(minCarId);
-    // const endDate = new Date(reservations[reservationMinIndex].earliestEndDate)
-
-
-    // return res.status(200).json({ car: cars[minIndex], endDate });
-
 })
 
 
