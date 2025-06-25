@@ -1,43 +1,38 @@
 const jwt = require('jsonwebtoken');
 
 function verifyToken(req, res, next) {
-    const authHeader = req.headers.authorization;
+    const token = req.cookies.token;
 
-    if (authHeader && authHeader.startsWith("Bearer ")) {
-
-        try {
-            const token = authHeader.split(" ")[1];
-            const decodedPayload = jwt.verify(token, process.env.JWT_SECRET)
-
-            req.user = decodedPayload;
-            next();
-
-
-        } catch (error) {
-            return res.status(401).json({ message: "Invalid token" });
-        }
-
-    } else {
+    if (!token) {
         return res.status(401).json({ message: "No token provided" });
+    }
 
+    try {
+        const decodedPayload = jwt.verify(token, process.env.JWT_SECRET);
+        req.user = decodedPayload;
+        next();
+    } catch (error) {
+        return res.status(401).json({ message: "Invalid token" });
     }
 }
+
 
 
 function optionalVerifyToken(req, res, next) {
-    const authHeader = req.headers.authorization;
-    if (authHeader && authHeader.startsWith('Bearer ')) {
+    const token = req.cookies.token;
+
+    if (token) {
         try {
-            const token = authHeader.split(' ')[1];
             const decodedPayload = jwt.verify(token, process.env.JWT_SECRET);
             req.user = decodedPayload;
         } catch (err) {
-            // ignore
+            // ignore invalid token
         }
     }
-    // no token → req.user stays undefined
+
     next();
 }
+
 
 function verifyAdmin(req, res, next) {
 

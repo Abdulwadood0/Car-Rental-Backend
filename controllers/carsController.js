@@ -236,6 +236,7 @@ module.exports.getAllCars = asyncHandler(async (req, res) => {
         sortObj = { pricePerDay: direction };
     }
 
+
     const cars = await Car.find(query)
         .skip((pageNum - 1) * limitNum)
         .limit(limitNum)
@@ -244,7 +245,6 @@ module.exports.getAllCars = asyncHandler(async (req, res) => {
 
     const total = await Car.countDocuments(query);
     const pageCount = Math.ceil(total / limitNum);
-
 
 
     return res.status(200).json({ cars, count: pageCount });

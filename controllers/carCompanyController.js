@@ -89,7 +89,7 @@ module.exports.updateCarCompany = asyncHandler(async (req, res) => {
         req.body.logo = result;
     }
 
-    const updatedCarCompany = await CarCompany.findByIdAndUpdate(req.params.id, {
+    await CarCompany.findByIdAndUpdate(req.params.id, {
         $set: {
             name: req.body.name,
             country: req.body.country,

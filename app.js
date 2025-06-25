@@ -1,5 +1,8 @@
 const express = require('express');
+const cookieParser = require('cookie-parser');
+
 const app = express();
+
 const connectDB = require('./config/ConnectDB');
 require('dotenv').config();
 const cors = require('cors');
@@ -25,6 +28,7 @@ const paymentRoute = require("./routes/paymentRoute");
 const { notFound, erroeHandler } = require('./middlewares/error');
 
 //middlewares
+app.use(cookieParser());
 app.use(express.json());
 
 //security
@@ -41,7 +45,8 @@ app.use(rateLimit({
 
 // Cors Policy
 app.use(cors({
-    // origin: 'http://localhost:3000'
+    // origin: 'http://localhost:3000',
+    credentials: true,// << this MUST be true to allow cookies
     origin: "https://car-rental-frontend-lwuc.vercel.app"
 }))
 

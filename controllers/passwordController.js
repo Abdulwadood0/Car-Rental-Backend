@@ -20,7 +20,7 @@ module.exports.sendResetPasswordLink = asyncHandler(async (req, res) => {
 
     const user = await User.findOne({ email: req.body.email });
     if (!user) {
-        return res.status(404).json({ message: "email must be a valid email" });
+        return res.status(404).json({ message: "No account associated with this email" });
     }
 
     let verificationToken = await VerificationToken.findOne({ userId: user._id });

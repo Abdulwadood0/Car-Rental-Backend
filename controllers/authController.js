@@ -79,8 +79,17 @@ module.exports.logIn = asyncHandler(async (req, res) => {
         return res.status(400).json({ message: "Password or username is incorrect" });
     }
 
-    const token = generateToken(user)
+    const token = generateToken(user);
 
+
+    res.cookie("token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production", // only send over HTTPS in prod
+        sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax", // ✅ allows cookies from same origin
+        maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+    });
+
+    // ✅ Send user info WITHOUT token
     res.status(200).json({
         _id: user._id,
         username: user.username,
@@ -89,8 +98,35 @@ module.exports.logIn = asyncHandler(async (req, res) => {
         lastname: user.lastname,
         phone: user.phone,
         isAdmin: user.isAdmin,
-        token: token,
     });
 
 })
 
+/**------------------------------------------
+ * @desc     Get current logged-in user's info
+ * @route    /api/auth/me
+ * @method   Get
+ * @access   private 
+ ------------------------------------------*/
+module.exports.me = asyncHandler(async (req, res) => {
+    res.status(200).json({
+        _id: req.user._id,
+        isAdmin: req.user.isAdmin,
+    });
+})
+
+
+/**------------------------------------------
+ * @desc     Logout user (clear authentication cookie)
+ * @route    /api/auth/logout
+ * @method   POST
+ * @access   private 
+ ------------------------------------------*/
+module.exports.logout = asyncHandler(async (req, res) => {
+    res.clearCookie("token", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax", // ✅ allows cookies from same origin
+    });
+    res.status(200).json({ message: "Logout successful" });
+});
