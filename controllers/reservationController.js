@@ -121,59 +121,63 @@ module.exports.PatchReservation = asyncHandler(async (req, res) => {
     if (!reservation) {
         return res.status(404).json({ message: "Reservation not found" });
     }
-    const startDate = toTimeZone(req.body.startDate);
-    const endDate = toTimeZone(req.body.endDate);
 
-    const { error } = validateUpdateReservation({ ...req.body, startDate, endDate });
-    if (error) {
+    if (req.body.status !== "cancelled") {
+        const startDate = toTimeZone(req.body.startDate);
+        const endDate = toTimeZone(req.body.endDate);
 
-        return res.status(400).json({ message: error.details[0].message });
-    }
+        const { error } = validateUpdateReservation({ ...req.body, startDate, endDate });
+        if (error) {
 
-    if (reservation.status === "cancelled" || reservation.status === "completed") {
-        return res.status(400).json({ message: "Cannot update a cancelled or completed reservation" });
-    }
-
-    // Check if the logged-in user owns the reservation or is an admin
-    if (reservation.userId.toString() !== req.user._id.toString() && !req.user.isAdmin) {
-        return res.status(403).json({ message: "Forbidden" });
-    }
-
-    const reservations = await Reservation.find({
-        carId: reservation.carId,
-        status: { $in: ["ongoing", "upcoming"] }
-    });
-
-    if (reservations.length >= 2 || (reservations.length === 1 && reservations[0].endDate > startDate)) {
-        reservation.status = "cancelled"
-        await reservation.save();
-        return res.status(400).json({ message: `Car is not available` });
-    }
-
-    let newStartDate = null
-    if (reservations.length === 1) {
-        newStartDate = reservations[0].endDate
-    }
-
-
-
-
-    // update startDate and endDate if provided
-    if (req.body.startDate || req.body.endDate) {
-        const dateError = checkDate(startDate, endDate, newStartDate);
-        if (dateError) {
-            return res.status(400).json({ message: dateError });
+            return res.status(400).json({ message: error.details[0].message });
         }
 
-        // Prevent updates on ongoing or upcoming reservations
-        if (reservation.status === "ongoing" || reservation.status === "upcoming") {
-            return res.status(400).json({ message: "Cannot update this reservation" });
+        if (reservation.status === "cancelled" || reservation.status === "completed") {
+            return res.status(400).json({ message: "Cannot update a cancelled or completed reservation" });
         }
 
-        reservation.startDate = startDate;
-        reservation.endDate = endDate;
-        reservation.totalPrice = req.body.totalPrice;
-        message = "Reservation updated successfully"
+        // Check if the logged-in user owns the reservation or is an admin
+        if (reservation.userId.toString() !== req.user._id.toString() && !req.user.isAdmin) {
+            return res.status(403).json({ message: "Forbidden" });
+        }
+
+        const reservations = await Reservation.find({
+            carId: reservation.carId,
+            status: { $in: ["ongoing", "upcoming"] }
+        });
+
+        if (reservations.length >= 2 || (reservations.length === 1 && reservations[0].endDate > startDate)) {
+            reservation.status = "cancelled"
+            await reservation.save();
+            return res.status(400).json({ message: `Car is not available` });
+        }
+
+        let newStartDate = null
+        if (reservations.length === 1) {
+            newStartDate = reservations[0].endDate
+        }
+
+
+
+
+        // update startDate and endDate if provided
+        if (req.body.startDate || req.body.endDate) {
+            const dateError = checkDate(startDate, endDate, newStartDate);
+            if (dateError) {
+                return res.status(400).json({ message: dateError });
+            }
+
+            // Prevent updates on ongoing or upcoming reservations
+            if (reservation.status === "ongoing" || reservation.status === "upcoming") {
+                return res.status(400).json({ message: "Cannot update this reservation" });
+            }
+
+            reservation.startDate = startDate;
+            reservation.endDate = endDate;
+            reservation.totalPrice = req.body.totalPrice;
+            message = "Reservation updated successfully"
+
+        }
 
     }
 
