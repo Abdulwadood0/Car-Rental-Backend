@@ -109,8 +109,19 @@ module.exports.logIn = asyncHandler(async (req, res) => {
  * @access   private 
  ------------------------------------------*/
 module.exports.me = asyncHandler(async (req, res) => {
+    const user = await User.findById(req.user._id);
+
+    if (!user) {
+        return res.status(404).json({ message: "User not found" });
+    }
+
     res.status(200).json({
         _id: req.user._id,
+        username: user.username,
+        email: user.email,
+        firstname: user.firstname,
+        lastname: user.lastname,
+        phone: user.phone,
         isAdmin: req.user.isAdmin,
     });
 })
@@ -126,7 +137,7 @@ module.exports.logout = asyncHandler(async (req, res) => {
     res.clearCookie("token", {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax", // ✅ allows cookies from same origin
+        sameSite: "None"
     });
     res.status(200).json({ message: "Logout successful" });
 });
