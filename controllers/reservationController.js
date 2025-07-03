@@ -13,7 +13,7 @@ function toTimeZone(date) {
 }
 
 
-function checkDate(startDate, endDate, newStartDate) {
+function checkDate(startDate, endDate, length, newStartDate) {
     const timeZone = "Asia/Riyadh";
     let today = toZonedTime(new Date(), timeZone)
     today.setHours(0, 0, 0, 0);
@@ -28,9 +28,12 @@ function checkDate(startDate, endDate, newStartDate) {
         maxStartDate.setDate(today.getDate() + 5);
     }
 
-    if (startDate < today || startDate > maxStartDate) {
-        return "Start date must be between today and the next 5 days";
+    if (length === 0) {
+        if (startDate < today || startDate > maxStartDate) {
+            return "Start date must be between today and the next 5 days";
+        }
     }
+
 
     const maxEndDate = new Date(startDate);
     maxEndDate.setDate(startDate.getDate() + 30);
@@ -61,8 +64,12 @@ module.exports.CreateReservation = asyncHandler(async (req, res) => {
     if (error) {
         return res.status(400).json({ message: error.details[0].message });
     }
+    const reservations = await Reservation.find({
+        carId: req.body.carId,
+        status: { $in: ["ongoing", "upcoming"] }
+    });
 
-    const dateError = checkDate(startDate, endDate);
+    const dateError = checkDate(startDate, endDate, reservations.length);
     if (dateError) {
         return res.status(400).json({ message: dateError });
     }
@@ -72,10 +79,7 @@ module.exports.CreateReservation = asyncHandler(async (req, res) => {
         return res.status(404).json({ message: "Car not found" });
     }
 
-    const reservations = await Reservation.find({
-        carId: req.body.carId,
-        status: { $in: ["ongoing", "upcoming"] }
-    });
+
 
     if (reservations.length >= 2) {
         const upcomingReservation = reservations.find(res => res.status === "Upcoming");
@@ -162,7 +166,7 @@ module.exports.PatchReservation = asyncHandler(async (req, res) => {
 
         // update startDate and endDate if provided
         if (req.body.startDate || req.body.endDate) {
-            const dateError = checkDate(startDate, endDate, newStartDate);
+            const dateError = checkDate(startDate, endDate, null, newStartDate);
             if (dateError) {
                 return res.status(400).json({ message: dateError });
             }
