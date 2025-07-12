@@ -25,7 +25,7 @@ const carsRoute = require("./routes/carsRoute")
 const carCompanyRoute = require("./routes/carCompanyRoute")
 const reservationRoute = require("./routes/reservationRoute")
 const paymentRoute = require("./routes/paymentRoute");
-const { notFound, erroeHandler } = require('./middlewares/error');
+const { notFound, errorHandler } = require('./middlewares/error');
 
 //middlewares
 app.use(cookieParser());
@@ -68,7 +68,7 @@ app.use("/api/payment", paymentRoute);
 
 //error handler
 app.use(notFound)
-app.use(erroeHandler)
+app.use(errorHandler)
 
 
 
