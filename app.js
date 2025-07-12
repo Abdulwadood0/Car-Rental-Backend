@@ -14,7 +14,7 @@ const rateLimit = require('express-rate-limit');
 
 connectDB();
 
-const { startReservationCleanup } = require('./services/corn');
+const { startReservationCleanup } = require('./services/cron');
 
 startReservationCleanup();
 
