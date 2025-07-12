@@ -62,11 +62,12 @@ EMAIL_PASSWORD=your_email_password
 ```
 
 ### 4. Run Locally
-
+```
 npm start
+Runs on `http://localhost:5000`.
+
 ```
 
-Runs on `http://localhost:5000`.
 
 ## 🌐 Deployment Details
 
@@ -105,5 +106,6 @@ pm2 save
 ```
 
 This ensures the backend stays running after crashes or reboots.
+
 
 
