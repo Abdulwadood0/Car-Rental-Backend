@@ -68,7 +68,6 @@ Runs on `http://localhost:5000`.
 
 ```
 
-
 ## 🌐 Deployment Details
 
 The backend is deployed on an **AWS EC2** instance using the following setup:
@@ -77,26 +76,9 @@ The backend is deployed on an **AWS EC2** instance using the following setup:
 - SSH access using private key (`.pem`)
 - **Node.js** and **npm** installed
 - **PM2** used to run the server in the background (`pm2 start server.js`)
-- **NGINX** used as a reverse proxy from port 80 to 5000
 - **MongoDB Atlas** as the production database
 
-#### NGINX Example Config:
 
-```nginx
-server {
-    listen 80;
-    server_name your-ec2-ip-or-domain;
-
-    location / {
-        proxy_pass http://localhost:5000;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_cache_bypass $http_upgrade;
-    }
-}
-```
 
 #### PM2 Setup:
 
