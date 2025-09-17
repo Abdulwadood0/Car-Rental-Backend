@@ -90,7 +90,7 @@ function validateSignUpUser(obj) {
 
 function validateLogInUser(obj) {
     const schema = Joi.object({
-        username: Joi.string().trim().min(3).max(25).lowercase().required(),
+        usernameOrEmail: Joi.string().trim().min(3).max(25).lowercase().required(),
         password: Joi.string().trim().min(6).required()
     });
     return schema.validate(obj);
