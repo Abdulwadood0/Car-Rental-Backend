@@ -70,7 +70,12 @@ module.exports.logIn = asyncHandler(async (req, res) => {
 
 
     //check if user exists
-    let user = await User.findOne({ username: req.body.username });
+    let user = await User.findOne({
+        $or: [
+            { username: req.body.usernameOrEmail },
+            { email: req.body.usernameOrEmail }
+        ]
+    });
     if (!user) {
         return res.status(404).json({ message: "Password or username is incorrect" });
     }
@@ -82,10 +87,6 @@ module.exports.logIn = asyncHandler(async (req, res) => {
 
     const accessToken = generateAccessToken(user);
     const refreshToken = generateRefreshToken(user);
-
-    console.log("sd", accessToken);
-    console.log(refreshToken);
-
 
 
     res.cookie("refreshToken", refreshToken, {
