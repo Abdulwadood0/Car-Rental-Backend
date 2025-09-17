@@ -1,14 +1,16 @@
 const jwt = require('jsonwebtoken');
 
 function verifyToken(req, res, next) {
-    const token = req.cookies.token;
+    const authHeader = req.headers["authorization"];
+    const token = authHeader && authHeader.split(" ")[1];
 
     if (!token) {
         return res.status(401).json({ message: "No token provided" });
     }
 
     try {
-        const decodedPayload = jwt.verify(token, process.env.JWT_SECRET);
+        const decodedPayload = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
+
         req.user = decodedPayload;
         next();
     } catch (error) {
@@ -19,11 +21,12 @@ function verifyToken(req, res, next) {
 
 
 function optionalVerifyToken(req, res, next) {
-    const token = req.cookies.token;
+    const authHeader = req.headers["authorization"];
+    const token = authHeader && authHeader.split(" ")[1];
 
     if (token) {
         try {
-            const decodedPayload = jwt.verify(token, process.env.JWT_SECRET);
+            const decodedPayload = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
             req.user = decodedPayload;
         } catch (err) {
             // ignore invalid token

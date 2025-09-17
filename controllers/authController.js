@@ -1,6 +1,7 @@
-const { User, validateSignUpUser, validateLogInUser, generateToken } = require('../models/User');
+const { User, validateSignUpUser, validateLogInUser, generateRefreshToken, generateAccessToken } = require('../models/User');
 const asyncHandler = require('express-async-handler');
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 
 
 /**------------------------------------------
@@ -79,27 +80,74 @@ module.exports.logIn = asyncHandler(async (req, res) => {
         return res.status(400).json({ message: "Password or username is incorrect" });
     }
 
-    const token = generateToken(user);
+    const accessToken = generateAccessToken(user);
+    const refreshToken = generateRefreshToken(user);
+
+    console.log("sd", accessToken);
+    console.log(refreshToken);
 
 
-    res.cookie("token", token, {
+
+    res.cookie("refreshToken", refreshToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production", // only send over HTTPS in prod
         sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax", // ✅ allows cookies from same origin
         maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
     });
 
-    // ✅ Send user info WITHOUT token
+
     res.status(200).json({
-        _id: user._id,
-        username: user.username,
-        email: user.email,
-        firstname: user.firstname,
-        lastname: user.lastname,
-        phone: user.phone,
-        isAdmin: user.isAdmin,
+        accessToken,
+        user: {
+            _id: user._id,
+            username: user.username,
+            email: user.email,
+            firstname: user.firstname,
+            lastname: user.lastname,
+            phone: user.phone,
+            isAdmin: user.isAdmin,
+        }
     });
 
+})
+
+
+
+/**------------------------------------------
+ * @desc     Refresh Token
+ * @route    /api/auth/refresh
+ * @method   POST
+ * @access   public 
+ ------------------------------------------*/
+module.exports.refreshToken = asyncHandler(async (req, res) => {
+    const token = req.cookies.refreshToken
+
+
+    if (!token) {
+        return res.status(401).json({ message: "No refresh token provided" });
+    }
+
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET);
+
+        const user = await User.findById(decoded._id)
+
+
+        if (!user) {
+            return res.status(403).json({ message: "User not found" });
+        }
+
+        // Issue new access token
+        const accessToken = jwt.sign(
+            { _id: user._id.toString(), isAdmin: user.isAdmin },
+            process.env.JWT_ACCESS_SECRET,
+            { expiresIn: "20m" } // short-lived
+        );
+
+        res.json({ accessToken });
+    } catch (err) {
+        return res.status(403).json({ message: "Invalid or expired refresh token" });
+    }
 })
 
 /**------------------------------------------
@@ -134,10 +182,12 @@ module.exports.me = asyncHandler(async (req, res) => {
  * @access   private 
  ------------------------------------------*/
 module.exports.logout = asyncHandler(async (req, res) => {
-    res.clearCookie("token", {
+    res.clearCookie("refreshToken", {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        sameSite: "None"
+        sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
+        path: "/"
     });
+
     res.status(200).json({ message: "Logout successful" });
 });

@@ -4,7 +4,9 @@ const cookieParser = require('cookie-parser');
 const app = express();
 
 const connectDB = require('./config/ConnectDB');
-require('dotenv').config();
+require("dotenv").config();
+
+
 const cors = require('cors');
 
 const xss = require('xss-clean');
