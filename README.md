@@ -15,7 +15,7 @@ This is the backend of the Car Rental Web App. It handles user authentication, c
 ## 🔐 Features
 
 - Role-based JWT authentication (user/admin)
-- Secure HTTP-only cookie sessions
+- Secure HTTP-only cookie sessions (access + refresh) token
 - CRUD for vehicles and reservations
 - Cloudinary image upload support
 - Moyassar API payment integration
