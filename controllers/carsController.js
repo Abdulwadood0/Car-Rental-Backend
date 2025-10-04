@@ -3,8 +3,6 @@ const { Car, validateCreateCar, validateUpdateCar } = require("../models/Car");
 const { Reservation } = require("../models/Reservation");
 const { CarCompany } = require("../models/CarCompany");
 const { uploadImages, deleteImages, deleteImage } = require("../services/cloudImagesService");
-const { model } = require("mongoose");
-const e = require("express");
 
 
 /**------------------------------------------
@@ -128,13 +126,15 @@ module.exports.updateCar = asyncHandler(async (req, res) => {
     if (req.files) {
 
         if (req.files.length > 2) {
-            res.status(400).json({ message: 'You can upload a maximum of 2 images' });
+            console.log('Too many files error triggered');
+
+            return res.status(400).json({ message: 'You can upload a maximum of 2 images' });
         }
 
         // Check if all files are images
         for (let file of req.files) {
             if (!file.mimetype.startsWith('image/')) {
-                res.status(400).json({ message: 'All files must be images' });
+                return res.status(400).json({ message: 'All files must be images' });
             }
         }
 

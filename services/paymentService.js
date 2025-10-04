@@ -1,6 +1,6 @@
 const axios = require('axios');
 
-async function processPayment({ amount, decription, source }) {
+async function processPayment({ amount, description, source }) {
 
     try {
         const response = await axios.post(
@@ -8,7 +8,7 @@ async function processPayment({ amount, decription, source }) {
             {
                 amount: amount,
                 currency: 'SAR',
-                description: decription,
+                description: description,
                 source: source,
                 callback_url: 'https://car-rental-frontend-lwuc.vercel.app/payment/callback' //redirect URL
             },

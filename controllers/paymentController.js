@@ -4,6 +4,7 @@ const { processPayment } = require('../services/paymentService');
 const { Car } = require("../models/Car");
 const { Reservation } = require("../models/Reservation");
 const axios = require('axios');
+
 /**------------------------------------------
  * @desc     Create payment
  * @route    /api/payment/:id
@@ -67,7 +68,7 @@ module.exports.createPayment = asyncHandler(async (req, res) => {
 
     if (payment.status === "paid") {
 
-        await updateReservationAndCar(reservation, car, payment.id)
+        await updateReservation(reservation)
 
         return res.status(200).json({ message: "Payment successful", payment: newPayment, })
 
@@ -149,7 +150,7 @@ module.exports.retryPayment = asyncHandler(async (req, res) => {
 
     if (payment.status === "paid") {
 
-        await updateReservationAndCar(reservation, payment.id)
+        await updateReservation(reservation)
 
         return res.status(200).json({ message: "Payment successful", payment })
 
@@ -165,9 +166,8 @@ module.exports.retryPayment = asyncHandler(async (req, res) => {
 
 
 })
-async function updateReservationAndCar(reservation, paymentId) {
+async function updateReservation(reservation) {
     reservation.status = "upcoming"
-    reservation.paymentId = paymentId
 
     await reservation.save();
 }
@@ -204,7 +204,7 @@ module.exports.handelPaymentCallback = asyncHandler(async (req, res) => {
 
         const reservation = await Reservation.findById(payment.reservationId);
         const car = await Car.findById(reservation.carId);
-        await updateReservationAndCar(reservation, payment._id);
+        await updateReservation(reservation);
 
         return res.status(200).json({ message: 'Payment has been completed successfully', payment });
 

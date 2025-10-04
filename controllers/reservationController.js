@@ -60,7 +60,14 @@ module.exports.CreateReservation = asyncHandler(async (req, res) => {
     const startDate = toTimeZone(req.body.startDate);
     const endDate = toTimeZone(req.body.endDate);
 
-    const { error } = validateCreateReservation({ ...req.body, startDate, endDate });
+    const car = await Car.findById(req.body.carId);
+    if (!car) {
+        return res.status(404).json({ message: "Car not found" });
+    }
+
+    const totalPrice = car.pricePerDay * ((endDate - startDate) / (1000 * 60 * 60 * 24));
+
+    const { error } = validateCreateReservation({ ...req.body, startDate, endDate, totalPrice });
     if (error) {
         return res.status(400).json({ message: error.details[0].message });
     }
@@ -74,15 +81,9 @@ module.exports.CreateReservation = asyncHandler(async (req, res) => {
         return res.status(400).json({ message: dateError });
     }
 
-    const car = await Car.findById(req.body.carId);
-    if (!car) {
-        return res.status(404).json({ message: "Car not found" });
-    }
-
-
 
     if (reservations.length >= 2) {
-        const upcomingReservation = reservations.find(res => res.status === "Upcoming");
+        const upcomingReservation = reservations.find(res => res.status === "upcoming");
         let availableDate = new Date(upcomingReservation.endDate);
         availableDate.setDate(availableDate.getDate() + 1);
         const formattedAvailableDate = availableDate.toLocaleDateString("en-GB");
@@ -95,7 +96,6 @@ module.exports.CreateReservation = asyncHandler(async (req, res) => {
         }
     }
 
-    const totalPrice = car.pricePerDay * ((endDate - startDate) / (1000 * 60 * 60 * 24));
 
     const reservation = new Reservation({
         userId: req.user._id,
@@ -119,6 +119,10 @@ module.exports.CreateReservation = asyncHandler(async (req, res) => {
  * @access   private  
  ------------------------------------------*/
 module.exports.PatchReservation = asyncHandler(async (req, res) => {
+    console.log(req.params)
+    console.log(req.body)
+
+
     const reservation = await Reservation.findById(req.params.id);
     let message = ""
 
@@ -126,23 +130,28 @@ module.exports.PatchReservation = asyncHandler(async (req, res) => {
         return res.status(404).json({ message: "Reservation not found" });
     }
 
-    if (req.body.status !== "cancelled") {
+    // Check if the logged-in user owns the reservation or is an admin
+    if (reservation.userId.toString() !== req.user._id.toString() && !req.user.isAdmin) {
+        return res.status(403).json({ message: "Forbidden" });
+    }
+
+    // Only validate and process dates if they are being updated
+    if (req.body.startDate || req.body.endDate) {
+        if (reservation.status === "cancelled" || reservation.status === "completed") {
+            return res.status(400).json({ message: "Cannot update a cancelled or completed reservation" });
+        }
+
+        // Prevent updates on ongoing or upcoming reservations
+        if (reservation.status === "ongoing" || reservation.status === "upcoming") {
+            return res.status(400).json({ message: "Cannot update this reservation" });
+        }
+
         const startDate = toTimeZone(req.body.startDate);
         const endDate = toTimeZone(req.body.endDate);
 
         const { error } = validateUpdateReservation({ ...req.body, startDate, endDate });
         if (error) {
-
             return res.status(400).json({ message: error.details[0].message });
-        }
-
-        if (reservation.status === "cancelled" || reservation.status === "completed") {
-            return res.status(400).json({ message: "Cannot update a cancelled or completed reservation" });
-        }
-
-        // Check if the logged-in user owns the reservation or is an admin
-        if (reservation.userId.toString() !== req.user._id.toString() && !req.user.isAdmin) {
-            return res.status(403).json({ message: "Forbidden" });
         }
 
         const reservations = await Reservation.find({
@@ -161,31 +170,18 @@ module.exports.PatchReservation = asyncHandler(async (req, res) => {
             newStartDate = reservations[0].endDate
         }
 
-
-
-
-        // update startDate and endDate if provided
-        if (req.body.startDate || req.body.endDate) {
-            const dateError = checkDate(startDate, endDate, null, newStartDate);
-            if (dateError) {
-                return res.status(400).json({ message: dateError });
-            }
-
-            // Prevent updates on ongoing or upcoming reservations
-            if (reservation.status === "ongoing" || reservation.status === "upcoming") {
-                return res.status(400).json({ message: "Cannot update this reservation" });
-            }
-
-            reservation.startDate = startDate;
-            reservation.endDate = endDate;
-            reservation.totalPrice = req.body.totalPrice;
-            message = "Reservation updated successfully"
-
+        const dateError = checkDate(startDate, endDate, null, newStartDate);
+        if (dateError) {
+            return res.status(400).json({ message: dateError });
         }
 
+        reservation.startDate = startDate;
+        reservation.endDate = endDate;
+        reservation.totalPrice = req.body.totalPrice;
+        message = "Reservation updated successfully"
     }
 
-
+    // Handle status updates separately
     if (req.body.status) {
         const from = reservation.status;
         const to = req.body.status;
@@ -201,11 +197,9 @@ module.exports.PatchReservation = asyncHandler(async (req, res) => {
         }
 
         if (to === "ongoing") {
-            reservation.actualStart = new Date();
             message = "Reservation started successfully";
         }
         if (to === "completed") {
-            reservation.actualEnd = new Date();
             message = "Reservation completed successfully";
         }
         if (to === "cancelled") {
@@ -219,7 +213,6 @@ module.exports.PatchReservation = asyncHandler(async (req, res) => {
     return res.status(200).json({
         message: message,
     });
-
 })
 
 

@@ -118,7 +118,8 @@ module.exports.resetPassword = asyncHandler(async (req, res) => {
     user.password = hashedPassword;
     await user.save();
 
-    await VerificationToken.deleteOne();
+    await VerificationToken.deleteOne({ userId: user._id });
+
 
     res.status(200).json({ message: "Password reset successfully" });
 })

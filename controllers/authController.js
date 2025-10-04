@@ -43,6 +43,7 @@ module.exports.signUp = asyncHandler(async (req, res) => {
         phone: req.body.phone,
         email: req.body.email,
         password: hashedPassword,
+
     })
 
     await user.save();
@@ -145,7 +146,8 @@ module.exports.refreshToken = asyncHandler(async (req, res) => {
             { expiresIn: "20m" } // short-lived
         );
 
-        res.json({ accessToken });
+        res.status(200).json({ accessToken });
+
     } catch (err) {
         return res.status(403).json({ message: "Invalid or expired refresh token" });
     }

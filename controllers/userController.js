@@ -59,14 +59,15 @@ module.exports.getUser = asyncHandler(async (req, res) => {
 
     const user = await User.findById(req.params.id).select("-password -__v -createdAt -updatedAt");
 
+    if (!user) {
+        return res.status(404).json({ message: "User not found" });
+    }
 
     if ((req.user._id.toString() !== user._id.toString())) {
         return res.status(401).json({ message: "Unauthorized" });
     }
 
-    if (!user) {
-        return res.status(404).json({ message: "User not found" });
-    }
+
 
     res.status(200).json(user);
 })
@@ -137,14 +138,14 @@ module.exports.updateUser = asyncHandler(async (req, res) => {
 module.exports.deleteUser = asyncHandler(async (req, res) => {
     const user = await User.findById(req.params.id);
 
+    if (!user) {
+        return res.status(404).json({ message: "User not found" });
+    }
+
     if ((req.user._id.toString() !== user._id.toString()) && !req.user.isAdmin) {
         return res.status(401).json({ message: "Unauthorized" });
     }
 
-
-    if (!user) {
-        return res.status(404).json({ message: "User not found" });
-    }
 
     await User.findByIdAndDelete(req.params.id);
 
