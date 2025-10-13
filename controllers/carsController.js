@@ -37,6 +37,7 @@ module.exports.addCar = asyncHandler(async (req, res) => {
     const car = new Car({
         carCompanyId: req.body.carCompanyId,
         model: req.body.model,
+        bodyType: req.body.bodyType,
         images: result,
         year: req.body.year,
         pricePerDay: req.body.pricePerDay,
@@ -156,6 +157,7 @@ module.exports.updateCar = asyncHandler(async (req, res) => {
                 model: req.body.model,
                 year: req.body.year,
                 pricePerDay: req.body.pricePerDay,
+                bodyType: req.body.bodyType,
                 fuelType: req.body.fuelType,
                 transmission: req.body.transmission,
                 status: req.body.status,
@@ -177,18 +179,20 @@ module.exports.updateCar = asyncHandler(async (req, res) => {
  * @method   GET
  * @access   public 
  ------------------------------------------*/
+/**------------------------------------------
+ * @desc     Get All Cars
+ * @route    /api/cars
+ * @method   GET
+ * @access   public 
+ ------------------------------------------*/
 module.exports.getAllCars = asyncHandler(async (req, res) => {
-
     const { page = 1, limit = 10, model, search, companyId, sortBy } = req.query;
 
     const pageNum = parseInt(page, 10);
     const limitNum = parseInt(limit, 10);
-
     const isAdmin = req.user?.isAdmin === true;
 
-    let query = {};
-
-    // handle unique-years by model if needed
+    // Handle unique years request (for both admin and non-admin)
     if (model && !search) {
         const yearsDocs = await Car
             .find({ model })
@@ -198,24 +202,64 @@ module.exports.getAllCars = asyncHandler(async (req, res) => {
         return res.status(200).json(uniqueYears);
     }
 
-    // build common OR-clauses array
+    let query = {};
+    let sortObj = { year: -1, _id: 1 };
+
+    // If admin, get all cars without filtering or duplicate removal
+    if (isAdmin) {
+        // Build query for admin (can still use search/filters if needed)
+        if (search) {
+            const rx = { $regex: search, $options: "i" };
+            const companies = await CarCompany
+                .find({ name: rx })
+                .select("_id");
+            const companyIds = companies.map(c => c._id);
+
+            query.$or = [
+                { model: rx },
+                { carCompanyId: { $in: companyIds } }
+            ];
+        }
+
+        if (companyId) {
+            query.carCompanyId = companyId;
+        }
+
+        if (sortBy) {
+            const direction = sortBy === "asc" ? 1 : -1;
+            sortObj = { pricePerDay: direction, _id: 1 };
+        }
+
+        const cars = await Car.find(query)
+            .sort(sortObj)
+            .skip((pageNum - 1) * limitNum)
+            .limit(limitNum)
+            .populate("carCompanyId");
+
+        const total = await Car.countDocuments(query);
+        const pageCount = Math.ceil(total / limitNum);
+
+        // Get unique years for admin response
+        const uniqueYears = await Car.distinct("year", query);
+
+        return res.status(200).json({
+            cars: cars,
+            count: pageCount,
+            total: total,
+            uniqueYears: uniqueYears
+        });
+    }
+
+    // Non-admin logic with duplicate removal
     const orClauses = [];
 
     if (search) {
         const rx = { $regex: search, $options: "i" };
-
-        // always allow model
         orClauses.push({ model: rx });
-
-        // only admin search by plateNumber
-        if (isAdmin) {
-            orClauses.push({ plateNumber: rx });
-        }
 
         const companies = await CarCompany
             .find({ name: rx })
             .select("_id");
-
         const companyIds = companies.map(c => c._id);
         if (companyIds.length) {
             orClauses.push({ carCompanyId: { $in: companyIds } });
@@ -230,27 +274,40 @@ module.exports.getAllCars = asyncHandler(async (req, res) => {
         query.carCompanyId = companyId;
     }
 
-    let sortObj = { year: -1 };
     if (sortBy) {
         const direction = sortBy === "asc" ? 1 : -1;
-        sortObj = { pricePerDay: direction };
+        sortObj = { pricePerDay: direction, _id: 1 };
     }
 
-
+    // Get all cars matching query for non-admin
     const cars = await Car.find(query)
-        .skip((pageNum - 1) * limitNum)
-        .limit(limitNum)
         .sort(sortObj)
         .populate("carCompanyId");
 
-    const total = await Car.countDocuments(query);
-    const pageCount = Math.ceil(total / limitNum);
+    // Remove duplicate car models - keep only the first occurrence of each model
+    const uniqueCars = cars.filter((car, index, self) =>
+        index === self.findIndex(c => c.model === car.model)
+    );
 
+    // Apply pagination after removing duplicates
+    const startIndex = (pageNum - 1) * limitNum;
+    const endIndex = startIndex + limitNum;
+    const paginatedCars = uniqueCars.slice(startIndex, endIndex);
 
-    return res.status(200).json({ cars, count: pageCount });
+    // Calculate pagination based on unique cars count
+    const totalUnique = uniqueCars.length;
+    const pageCount = Math.ceil(totalUnique / limitNum);
+
+    // Get unique years for non-admin response
+    const uniqueYears = await Car.distinct("year", query);
+
+    return res.status(200).json({
+        cars: paginatedCars,
+        count: pageCount,
+        totalUnique: totalUnique,
+        uniqueYears: uniqueYears
+    });
 });
-
-
 
 
 /**------------------------------------------
@@ -279,7 +336,6 @@ module.exports.getCar = asyncHandler(async (req, res) => {
  * @access   public 
  ------------------------------------------*/
 module.exports.getCarByYearAndModel = asyncHandler(async (req, res) => {
-
     const { year, model, carId } = req.query;
 
     if (!year || !model) {

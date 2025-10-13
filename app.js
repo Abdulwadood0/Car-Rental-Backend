@@ -14,6 +14,7 @@ const carsRoute = require("./routes/carsRoute");
 const carCompanyRoute = require("./routes/carCompanyRoute");
 const reservationRoute = require("./routes/reservationRoute");
 const paymentRoute = require("./routes/paymentRoute");
+const chatRoute = require("./routes/chatRoute")
 const { notFound, errorHandler } = require('./middlewares/error');
 
 const app = express();
@@ -36,9 +37,9 @@ app.use(rateLimit({
 
 // cors
 app.use(cors({
-    // origin: "http://localhost:3000",
+    origin: "http://localhost:3000",
     credentials: true,
-    origin: "https://car-rental-frontend-lwuc.vercel.app"
+    // origin: "https://car-rental-frontend-lwuc.vercel.app"
 }));
 
 // routes
@@ -49,6 +50,7 @@ app.use("/api/cars", carsRoute);
 app.use("/api/companies", carCompanyRoute);
 app.use("/api/reservation", reservationRoute);
 app.use("/api/payment", paymentRoute);
+app.use("/api/chat", chatRoute)
 
 // error handlers
 app.use(notFound);

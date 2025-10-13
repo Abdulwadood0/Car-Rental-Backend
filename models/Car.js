@@ -16,6 +16,11 @@ const CarSchema = new mongoose.Schema({
         type: Number,
         required: true
     },
+    bodyType: {
+        type: String,
+        enum: ["Sedan", "SUV", "Hatchback", "Truck", "Van"],
+        required: true
+    },
     pricePerDay: {
         type: Number,
         required: true
@@ -56,6 +61,7 @@ function validateCreateCar(obj) {
     const schema = Joi.object({
         carCompanyId: Joi.string().required(),
         model: Joi.string().required(),
+        bodyType: Joi.string().required().valid("Sedan", "SUV", "Hatchback", "Truck", "Van"),
         plateNumber: Joi.string().required(),
         year: Joi.number().required(),
         pricePerDay: Joi.number().required(),
@@ -70,6 +76,7 @@ function validateUpdateCar(obj) {
         model: Joi.string(),
         year: Joi.number(),
         pricePerDay: Joi.number(),
+        bodyType: Joi.string().valid("Sedan", "SUV", "Hatchback", "Truck", "Van"),
         fuelType: Joi.string().valid("Gasoline", "Diesel", "Electric", "Hybrid"),
         transmission: Joi.string(),
         status: Joi.string().valid("Available", "Unavailable", "maintenance", "Reserved"),

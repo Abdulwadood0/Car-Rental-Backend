@@ -119,8 +119,7 @@ module.exports.CreateReservation = asyncHandler(async (req, res) => {
  * @access   private  
  ------------------------------------------*/
 module.exports.PatchReservation = asyncHandler(async (req, res) => {
-    console.log(req.params)
-    console.log(req.body)
+
 
 
     const reservation = await Reservation.findById(req.params.id);
