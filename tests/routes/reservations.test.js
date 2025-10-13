@@ -22,6 +22,8 @@ describe("Reservation routes", () => {
             carCompanyId: "64f2c1f1c2a1f1a1f1a1f1a1",
             model: "Test Model",
             year: 2023,
+            bodyType: "Sedan",
+
             pricePerDay: 100,
             fuelType: "Electric",
             transmission: "Automatic",
@@ -66,6 +68,8 @@ describe("Reservation routes", () => {
             model: "Test Model",
             year: 2023,
             pricePerDay: 100,
+            bodyType: "Sedan",
+
             fuelType: "Electric",
             transmission: "Automatic",
             plateNumber: "TEST123",
@@ -129,6 +133,8 @@ describe("Reservation routes", () => {
             carCompanyId: "64f2c1f1c2a1f1a1f1a1f1a1",
             model: "Test Model",
             year: 2023,
+            bodyType: "Sedan",
+
             pricePerDay: 100,
             fuelType: "Electric",
             transmission: "Automatic",
@@ -178,6 +184,8 @@ describe("Reservation routes", () => {
             carCompanyId: "64f2c1f1c2a1f1a1f1a1f1a1",
             model: "Test Model",
             year: 2023,
+            bodyType: "Sedan",
+
             pricePerDay: 100,
             fuelType: "Electric",
             transmission: "Automatic",
@@ -214,6 +222,8 @@ describe("Reservation routes", () => {
             model: "Test Model",
             year: 2023,
             pricePerDay: 100,
+            bodyType: "Sedan",
+
             fuelType: "Electric",
             transmission: "Automatic",
             plateNumber: "TEST123",
@@ -246,6 +256,8 @@ describe("Reservation routes", () => {
             carCompanyId: "64f2c1f1c2a1f1a1f1a1f1a1",
             model: "Test Model",
             year: 2023,
+            bodyType: "Sedan",
+
             pricePerDay: 100,
             fuelType: "Electric",
             transmission: "Automatic",
@@ -306,6 +318,8 @@ describe("Reservation routes", () => {
             model: "Test Model",
             year: 2023,
             pricePerDay: 100,
+            bodyType: "Sedan",
+
             fuelType: "Electric",
             transmission: "Automatic",
             plateNumber: "TEST123",
@@ -374,6 +388,8 @@ describe("Reservation routes", () => {
             model: "Test Model",
             year: 2023,
             pricePerDay: 100,
+            bodyType: "Sedan",
+
             fuelType: "Electric",
             transmission: "Automatic",
             plateNumber: "TEST123",
@@ -435,6 +451,8 @@ describe("Reservation routes", () => {
             carCompanyId: "64f2c1f1c2a1f1a1f1a1f1a1",
             model: "Test Model",
             year: 2023,
+            bodyType: "Sedan",
+
             pricePerDay: 100,
             fuelType: "Electric",
             transmission: "Automatic",
@@ -470,6 +488,8 @@ describe("Reservation routes", () => {
             carCompanyId: "64f2c1f1c2a1f1a1f1a1f1a1",
             model: "Test Model",
             year: 2023,
+            bodyType: "Sedan",
+
             pricePerDay: 100,
             fuelType: "Electric",
             transmission: "Automatic",
@@ -514,6 +534,8 @@ describe("Reservation routes", () => {
             carCompanyId: "64f2c1f1c2a1f1a1f1a1f1a1",
             model: "Test Model",
             year: 2023,
+            bodyType: "Sedan",
+
             pricePerDay: 100,
             fuelType: "Electric",
             transmission: "Automatic",

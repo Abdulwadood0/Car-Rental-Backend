@@ -38,6 +38,7 @@ describe("Cars routes", () => {
         const defaultData = {
             carCompanyId: "64f2c1f1c2a1f1a1f1a1f1a1",
             model: "Model X",
+            bodyType: "Sedan",
             year: 2023,
             pricePerDay: 100,
             fuelType: "Diesel",
@@ -52,6 +53,7 @@ describe("Cars routes", () => {
             .field("carCompanyId", defaultData.carCompanyId)
             .field("model", defaultData.model)
             .field("year", defaultData.year)
+            .field("bodyType", defaultData.bodyType)
             .field("pricePerDay", defaultData.pricePerDay)
             .field("fuelType", defaultData.fuelType)
             .field("transmission", defaultData.transmission)
@@ -79,6 +81,7 @@ describe("Cars routes", () => {
             .field("model", "Model X")
             .field("year", 2023)
             .field("pricePerDay", 100)
+            .field("bodyType", "Sedan")
             .field("fuelType", "Diesel")
             .field("transmission", "Automatic")
             .field("plateNumber", "ABC123")
@@ -101,6 +104,7 @@ describe("Cars routes", () => {
         const car = await Car.create({
             carCompanyId: "64f2c1f1c2a1f1a1f1a1f1a1",
             model: "Model Y",
+            bodyType: "Sedan",
             year: 2023,
             pricePerDay: 150,
             fuelType: "Diesel",
@@ -133,6 +137,7 @@ describe("Cars routes", () => {
             carCompanyId: "64f2c1f1c2a1f1a1f1a1f1a1",
             model: "Old Model",
             year: 2020,
+            bodyType: "Sedan",
             pricePerDay: 80,
             fuelType: "Diesel",
             transmission: "Manual",
@@ -179,6 +184,8 @@ describe("Cars routes", () => {
                 year: 2023,
                 pricePerDay: 150,
                 fuelType: "Electric",
+                bodyType: "Sedan",
+
                 transmission: "Automatic",
                 plateNumber: "ABC123",
                 images: [{ url: "http://fake.com/image1.jpg", publicId: "img1" }]
@@ -187,6 +194,8 @@ describe("Cars routes", () => {
                 carCompanyId: "64f2c1f1c2a1f1a1f1a1f1a2",
                 model: "Model X",
                 year: 2024,
+                bodyType: "Sedan",
+
                 pricePerDay: 200,
                 fuelType: "Electric",
                 transmission: "Automatic",
@@ -218,6 +227,8 @@ describe("Cars routes", () => {
             carCompanyId: "64f2c1f1c2a1f1a1f1a1f1a1",
             model: "Model S",
             year: 2023,
+            bodyType: "Sedan",
+
             pricePerDay: 150,
             fuelType: "Electric",
             transmission: "Automatic",
@@ -251,6 +262,8 @@ describe("Cars routes", () => {
             year: 2023,
             pricePerDay: 150,
             fuelType: "Electric",
+            bodyType: "Sedan",
+
             transmission: "Automatic",
             plateNumber: "ABC123",
             images: [
@@ -285,6 +298,8 @@ describe("Cars routes", () => {
                 year: 2023,
                 pricePerDay: 150,
                 fuelType: "Electric",
+                bodyType: "Sedan",
+
                 transmission: "Automatic",
                 plateNumber: "ABC123",
                 images: [{ url: "http://fake.com/image1.jpg", publicId: "img1" }]
@@ -295,6 +310,8 @@ describe("Cars routes", () => {
                 year: 2024,
                 pricePerDay: 180,
                 fuelType: "Electric",
+                bodyType: "Sedan",
+
                 transmission: "Automatic",
                 plateNumber: "DEF456",
                 images: [{ url: "http://fake.com/image2.jpg", publicId: "img2" }]
@@ -303,6 +320,8 @@ describe("Cars routes", () => {
                 carCompanyId: "64f2c1f1c2a1f1a1f1a1f1a2",
                 model: "Model X",
                 year: 2023,
+                bodyType: "Sedan",
+
                 pricePerDay: 200,
                 fuelType: "Electric",
                 transmission: "Automatic",
@@ -333,6 +352,8 @@ describe("Cars routes", () => {
                 carCompanyId: "64f2c1f1c2a1f1a1f1a1f1a1",
                 model: "Model S",
                 year: 2023,
+                bodyType: "Sedan",
+
                 pricePerDay: 150,
                 fuelType: "Electric",
                 transmission: "Automatic",
@@ -344,6 +365,8 @@ describe("Cars routes", () => {
                 model: "Model X",
                 year: 2024,
                 pricePerDay: 200,
+                bodyType: "Sedan",
+
                 fuelType: "Electric",
                 transmission: "Automatic",
                 plateNumber: "DEF456",
@@ -417,6 +440,8 @@ describe("Cars routes", () => {
             model: "Test Model",
             year: 2023,
             pricePerDay: 100,
+            bodyType: "Sedan",
+
             fuelType: "Electric",
             transmission: "Manual",
             plateNumber: "TEST123",
@@ -455,6 +480,8 @@ describe("Cars routes", () => {
                 year: 2023,
                 pricePerDay: 150,
                 fuelType: "Electric",
+                bodyType: "Sedan",
+
                 transmission: "Automatic",
                 plateNumber: "ABC123",
                 images: [{ url: "http://fake.com/image1.jpg", publicId: "img1" }]
@@ -482,6 +509,8 @@ describe("Cars routes", () => {
                 year: 2023,
                 pricePerDay: 150,
                 fuelType: "Electric",
+                bodyType: "Sedan",
+
                 transmission: "Automatic",
                 plateNumber: "ABC123",
                 images: [{ url: "http://fake.com/image1.jpg", publicId: "img1" }]
@@ -543,6 +572,8 @@ describe("Cars routes", () => {
                 carCompanyId: "64f2c1f1c2a1f1a1f1a1f1a1",
                 model: "Model S",
                 year: 2023,
+                bodyType: "Sedan",
+
                 pricePerDay: 150,
                 fuelType: "Electric",
                 transmission: "Automatic",

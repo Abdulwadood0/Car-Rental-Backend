@@ -27,6 +27,8 @@ describe("Payment routes", () => {
             carCompanyId: "64f2c1f1c2a1f1a1f1a1f1a1",
             model: "Test Model",
             year: 2023,
+            bodyType: "Sedan",
+
             pricePerDay: 100,
             fuelType: "Electric",
             transmission: "Automatic",
@@ -84,6 +86,8 @@ describe("Payment routes", () => {
             carCompanyId: "64f2c1f1c2a1f1a1f1a1f1a1",
             model: "Test Model",
             year: 2023,
+            bodyType: "Sedan",
+
             pricePerDay: 100,
             fuelType: "Electric",
             transmission: "Automatic",
@@ -157,6 +161,8 @@ describe("Payment routes", () => {
             model: "Test Model",
             year: 2023,
             pricePerDay: 100,
+            bodyType: "Sedan",
+
             fuelType: "Electric",
             transmission: "Automatic",
             plateNumber: "TEST123",
@@ -241,6 +247,8 @@ describe("Payment routes", () => {
             model: "Test Model",
             year: 2023,
             pricePerDay: 100,
+            bodyType: "Sedan",
+
             fuelType: "Electric",
             transmission: "Automatic",
             plateNumber: "TEST123",
@@ -273,6 +281,8 @@ describe("Payment routes", () => {
             year: 2023,
             pricePerDay: 100,
             fuelType: "Electric",
+            bodyType: "Sedan",
+
             transmission: "Automatic",
             plateNumber: "TEST123",
             images: [{ url: "http://fake.com/image1.jpg", publicId: "img1" }]
@@ -325,6 +335,8 @@ describe("Payment routes", () => {
             carCompanyId: "64f2c1f1c2a1f1a1f1a1f1a1",
             model: "Test Model",
             year: 2023,
+            bodyType: "Sedan",
+
             pricePerDay: 100,
             fuelType: "Electric",
             transmission: "Automatic",
@@ -377,6 +389,8 @@ describe("Payment routes", () => {
         const car = await Car.create({
             carCompanyId: "64f2c1f1c2a1f1a1f1a1f1a1",
             model: "Test Model",
+            bodyType: "Sedan",
+
             year: 2023,
             pricePerDay: 100,
             fuelType: "Electric",
@@ -445,6 +459,8 @@ describe("Payment routes", () => {
             model: "Test Model",
             year: 2023,
             pricePerDay: 100,
+            bodyType: "Sedan",
+
             fuelType: "Electric",
             transmission: "Automatic",
             plateNumber: "TEST123",
