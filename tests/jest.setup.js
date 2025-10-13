@@ -33,9 +33,6 @@ jest.mock('openai', () => {
     }));
 });
 
-// Also mock your openAiService specifically
 jest.mock('../services/openAiService', () => ({
-    // Return whatever your service exports
     askQuestion: jest.fn().mockResolvedValue("Mocked AI response"),
-    // Add other functions your service exports
 }));
