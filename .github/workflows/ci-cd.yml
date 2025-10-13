@@ -2,26 +2,38 @@ name: CI - CarRental Backend
 
 on:
   push:
-    branches: [ "main" ]  # run when pushing to main
+    branches: [ "main" ]
   pull_request:
-    branches: [ "main" ]  # also run when PR targets main
+    branches: [ "main" ]
 
 jobs:
   build_and_test:
     name: Run tests
-    runs-on: ubuntu-latest  # virtual Ubuntu server
+    runs-on: ubuntu-latest
+    env: 
+      NODE_ENV: test
+      MONGODB_URL: ${{ secrets.MONGODB_URL }}
+      JWT_ACCESS_SECRET: ${{ secrets.JWT_ACCESS_SECRET }}
+      JWT_REFRESH_SECRET: ${{ secrets.JWT_REFRESH_SECRET }}
+      MOYASAR_SECRET_KEY: ${{ secrets.MOYASAR_SECRET_KEY }}
+      EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
+      EMAIL_ADDRESS: ${{ secrets.EMAIL_ADDRESS }}
+      CLOUDINARY_CLOUD_NAME: ${{ secrets.CLOUDINARY_CLOUD_NAME }}
+      CLOUDINARY_API_KEY: ${{ secrets.CLOUDINARY_API_KEY }}
+      CLOUDINARY_API_SECRET: ${{ secrets.CLOUDINARY_API_SECRET }}
+      OPENAI__SECRET_KEY: ${{ secrets.OPENAI__SECRET_KEY }}
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4  # pulls repo into the VM
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20  # choose your Node.js version
+          node-version: 20
 
       - name: Install dependencies
-        run: npm ci  # clean install using package-lock.json
+        run: npm ci
 
       - name: Run tests
-        run: npm test  # executes your test command from package.json
+        run: npm test
