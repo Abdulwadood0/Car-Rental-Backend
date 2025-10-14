@@ -1,28 +1,33 @@
 # 🚘 Car Rental Backend API
 
-This is the backend of the Car Rental Web App. It handles user authentication, car and booking management, and integrates with Moyassar for payments.
+This is the backend of the Car Rental Web App. It handles user authentication, car and booking management, and integrates with Moyassar for payments, and provides a chatbot powered by OpenAI.
 
 ## 🛠️ Tech Stack
 
 - Node.js
 - Express
 - MongoDB (hosted on MongoDB Atlas)
-- JWT Authentication (with HTTP-only cookies)
+- JWT Authentication refresh + access token(with HTTP-only cookies)
 - Cloudinary (for image uploads and storage)
 - Moyassar API (for payment processing)
+- OpenAI API (chatbot integration)
 - AWS EC2 (deployment)
+- Jest & Supertest (for integration testing)
+- GitHub Actions (CI/CD pipeline)
 
 ## 🔐 Features
 
 - Role-based JWT authentication (user/admin)
-- Secure HTTP-only cookie sessions (access + refresh) token
+- Secure HTTP-only cookie sessions (access + refresh tokens)
 - CRUD for vehicles and reservations
 - Cloudinary image upload support
 - Moyassar API payment integration
+- OpenAI-powered chatbot endpoint
 - Error handling with consistent API responses
-- Scheduled cron job runs every 5 minutes to delete reservations that are still unpaid and were created more than 1 hour ago
-- Environment-based config for production and development
-
+- Scheduled cron job every 5 minutes to delete unpaid reservations older than 1 hour
+- Environment-based configuration for production and development
+- Integration tests using Jest & Supertest
+- Automatic deployment via GitHub Actions CI/CD pipeline
 ## 🧪 API Routes (Highlights)
 
 - `POST /api/auth/signup` – signup a new user  
@@ -58,12 +63,13 @@ MOYASSAR_API_KEY=your_moyassar_key
 FRONTEND_URL=http://localhost:3000
 RESEND_API_KEY=your_resend_api_key
 EMAIL_ADDRESS=your_email@example.com
+OPENAI__SECRET_KEY=your_OPENAI__SECRET_KEY
 EMAIL_PASSWORD=your_email_password
 ```
 
 ### 4. Run Locally
 ```
-npm start
+npm run dev
 Runs on `http://localhost:5000`.
 
 ```
