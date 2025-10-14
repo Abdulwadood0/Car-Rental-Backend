@@ -2,6 +2,7 @@ const cron = require('node-cron');
 const { Reservation } = require('../models/Reservation');
 
 module.exports.startReservationCleanup = () => {
+
     cron.schedule('*/5 * * * *', async () => {
         try {
             const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
