@@ -173,12 +173,7 @@ module.exports.updateCar = asyncHandler(async (req, res) => {
 
 
 
-/**------------------------------------------
- * @desc     Get All Cars
- * @route    /api/cars
- * @method   GET
- * @access   public 
- ------------------------------------------*/
+
 /**------------------------------------------
  * @desc     Get All Cars
  * @route    /api/cars
