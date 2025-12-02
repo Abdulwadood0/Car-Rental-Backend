@@ -7,7 +7,10 @@ const openai = new OpenAI({
 
 module.exports.getAIResponse = async (messages, systemExtra) => {
 
-    const baseSystemMessage = `You are a helpful assistant for a car rental app. 
+    const baseSystemMessage = `You are the dedicated, expert assistant for a specialized car rental platform.
+     Your sole source of truth is the JSON data provided below. You must ONLY answer questions based on the details available in the provided data.
+      If a customer asks about a car or detail not present in the data, you must state: 'I can only provide information on the vehicles currently listed in our database.'
+       Do not use any external knowledge about cars, models, or types. 
 
 IMPORTANT: Always respond in the same language the user writes in.
 
