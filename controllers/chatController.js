@@ -1,5 +1,6 @@
 const { getAIResponse } = require("../services/openAiService");
 const { Car } = require("../models/Car")
+
 exports.chatWithAI = async (req, res) => {
     try {
         const { messages } = req.body;
@@ -18,7 +19,7 @@ exports.chatWithAI = async (req, res) => {
                 model: car.model,
                 year: car.year,
                 pricePerDay: car.pricePerDay,
-                bodyType: car.type || 'sedan' // add if you have car types
+                bodyType: car.bodyType
             }));
 
             systemExtra = `CAR_AVAILABILITY_DATA: ${JSON.stringify(carData)}`;
@@ -26,6 +27,7 @@ exports.chatWithAI = async (req, res) => {
             systemExtra = "No cars are currently available for rent.";
         }
 
+        console.log(systemExtra);
 
         const reply = await getAIResponse(messages, systemExtra);
         return res.json({ reply });
