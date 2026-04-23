@@ -38,6 +38,14 @@ const ReservationSchema = new mongoose.Schema({
         type: String,
         default: null
     },
+    branch: {
+        type: String,
+        enum: ["dammam", "riyadh", "jeddah"],
+    },
+    paymentMethod: {
+        type: String,
+        enum: ["credit", "atBranch"],
+    },
 
 }, {
     timestamps: true
@@ -54,6 +62,8 @@ function validateCreateReservation(obj) {
         startDate: Joi.date().min(now).required(),
         endDate: Joi.date().greater(Joi.ref("startDate")).required(), // Ensures endDate is after startDate
         totalPrice: Joi.number().required(),
+        branch: Joi.string().valid("dammam", "riyadh", "jeddah").required(),
+        paymentMethod: Joi.string().valid("credit", "atBranch").required(),
     });
     return schema.validate(obj);
 }

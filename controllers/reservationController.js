@@ -59,6 +59,9 @@ function checkDate(startDate, endDate, length, newStartDate) {
 module.exports.CreateReservation = asyncHandler(async (req, res) => {
     const startDate = toTimeZone(req.body.startDate);
     const endDate = toTimeZone(req.body.endDate);
+    const branch = req.body.branch;
+    const paymentMethod = req.body.paymentMethod;
+
 
     const car = await Car.findById(req.body.carId);
     if (!car) {
@@ -67,7 +70,7 @@ module.exports.CreateReservation = asyncHandler(async (req, res) => {
 
     const totalPrice = car.pricePerDay * ((endDate - startDate) / (1000 * 60 * 60 * 24));
 
-    const { error } = validateCreateReservation({ ...req.body, startDate, endDate, totalPrice });
+    const { error } = validateCreateReservation({ ...req.body, startDate, endDate, totalPrice, branch, paymentMethod });
     if (error) {
         return res.status(400).json({ message: error.details[0].message });
     }
@@ -96,13 +99,20 @@ module.exports.CreateReservation = asyncHandler(async (req, res) => {
         }
     }
 
+    let status = "pending"
+    if (paymentMethod === "atBranch") {
+        status = "upcoming"
+    }
 
     const reservation = new Reservation({
         userId: req.user._id,
         carId: req.body.carId,
         startDate,
         endDate,
-        totalPrice
+        totalPrice,
+        status,
+        branch,
+        paymentMethod
     });
 
     await reservation.save();

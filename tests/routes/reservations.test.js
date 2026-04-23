@@ -40,7 +40,9 @@ describe("Reservation routes", () => {
             .send({
                 carId: car._id.toString(),
                 startDate: startDate.toISOString(),
-                endDate: endDate.toISOString()
+                endDate: endDate.toISOString(),
+                branch: "riyadh",
+                paymentMethod: "credit"
             })
             .expect(200);
 
@@ -425,7 +427,9 @@ describe("Reservation routes", () => {
             .send({
                 carId: car._id.toString(),
                 startDate: startDate.toISOString(),
-                endDate: endDate.toISOString()
+                endDate: endDate.toISOString(),
+                branch: "riyadh",
+                paymentMethod: "credit"
             })
             .expect(400);
 
