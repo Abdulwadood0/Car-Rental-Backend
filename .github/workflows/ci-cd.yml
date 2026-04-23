@@ -47,6 +47,7 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             cd /home/ubuntu/Car-Rental-Backend
-            git pull origin main
+            git fetch origin
+            git reset --hard origin/main
             npm ci --omit=dev
             pm2 restart all
